@@ -1,0 +1,16 @@
+# Node modules
+node_modules/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# Build artifacts
+dist/
+build/
+
+# Test coverage
+/coverage
