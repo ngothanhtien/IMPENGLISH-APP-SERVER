@@ -144,4 +144,26 @@ export const userController = {
             message: "User deleted successfully"
         })
     }),
+
+    resendOTP: asyncHandler(async(req: Request, res: Response) => {
+        const {email} = req.body;
+        const user = await User.findOne({email: email});
+
+        if(!user){
+            res.status(HttpStatus.NOT_FOUND);
+            throw new Error("Account with email need verify is not found");
+        }
+
+        if(user.verify){
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("Account is already verified");
+        }
+        const result = await verificationOTP.resenOTP(email);
+        if(!result.success){
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error(result.message);
+        }
+
+        res.status(HttpStatus.OK).json({title: result.title, message: result.message});
+    }),
 }
