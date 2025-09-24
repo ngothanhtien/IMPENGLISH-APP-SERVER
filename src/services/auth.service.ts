@@ -38,9 +38,9 @@ export const authService = {
         return token;
     },
 
-    generateRefreshToken: async (user: IUserConstants, ip?: string, deviceInfo?: string) => {
+    generateRefreshToken: async (user: IUserConstants) => {
         const token = crypto.randomBytes(64).toString('hex');
-        await refreshTokenService.save(token,user._id as string, user.email as string, ip, deviceInfo);
+        await refreshTokenService.save(token,user._id as string,user.email as string,user.type as string);
         return token;
     }
 }
