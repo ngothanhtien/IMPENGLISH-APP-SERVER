@@ -10,33 +10,40 @@ import crypto from "crypto";
 import { RefreshToken } from "../models/refreshtoken.model";
 export const authController = {
     login: asyncHandler(async (req: Request, res: Response)=>{
-        const {email, password} = req.body;
-        const validation =  validationUser.login(email,password);
-
-        if(validation){
+        const { email, password } = req.body;
+    
+        // Validate input
+        const validation = validationUser.login(email, password);
+        if (validation) {
             res.status(validation.status);
             throw new Error(validation.message);
-        };
-        const result = await authService.login(email,password);
-        if(!result){
+        }
+        
+        // Authenticate user
+        const user = await authService.login(email, password);
+        if (!user) {
             res.status(HttpStatus.UNAUTHORIZED);
             throw new Error("Invalid email or password");
-        };
-
-        const user = await authService.findOne(email);
-        if(!user){
-            res.status(HttpStatus.NOT_FOUND);
-            throw new Error("User is not found");
-        };
+        }
+        
+        // Generate tokens
         const dataTokenUser: IUserConstants = {
             _id: user._id as string,
             email: user.email,
             type: user.type,
-        }
+        };
+        
         const accessToken = authService.generateAccessToken(dataTokenUser);
-        const refreshToken = await authService.generateRefreshToken(dataTokenUser);
-
+        const refreshToken = await authService.generateRefreshToken(
+            dataTokenUser
+        ).catch(err => {
+            console.error("[LOGIN] Error generating refresh token:", err);
+            throw err;
+        });
+        console.log("[LOGIN] Returning tokens:", { accessToken, refreshToken });
+    
         res.status(HttpStatus.OK).json({
+            title: "Success",
             message: "Login successful",
             accessToken,
             refreshToken,
@@ -50,7 +57,7 @@ export const authController = {
     }),
 
     refreshToken: asyncHandler(async (req: Request, res: Response)=>{
-        const refreshToken = req.cookies?.refreshToken ?? req.body?.refreshToken;
+        const {refreshToken} = req.body;
 
         if(!refreshToken){
             res.status(HttpStatus.BAD_REQUEST);
@@ -61,7 +68,7 @@ export const authController = {
             res.status(HttpStatus.FORBIDDEN);
             throw new Error('Refresh token not recognized');
         }
-        if(record.revoked || record.expiresAt < new Date()){
+        if(record.revoked == true || record.expiresAt < new Date()){
             res.status(HttpStatus.FORBIDDEN);
             throw new Error('Refresh token revoked or expired');
         }
@@ -70,14 +77,13 @@ export const authController = {
         await refreshTokenService.save(newRefreshToken, record.userId.toString(), record.email, req.ip, req.headers['user-agent'] || '');
         await RefreshToken.updateOne({ _id: record._id }, { revoked: true, revokedAt: new Date(), replacedByHash: hashToken(newRefreshToken) });
 
-        const payload = {
+        const payload: IUserConstants = {
             _id: record.userId.toString(),
             email: record.email,
+            type: 'user'
         };
 
         const newAccessToken = authService.generateAccessToken(payload);
-        const maxAge = parseInt(process.env.EXPIRES_REFRESHTOKEN as string) * 1000; // convert to ms
-        res.cookie('refreshToken', newRefreshToken, { httpOnly: true, maxAge, path: '/',sameSite: 'lax' });
         res.status(HttpStatus.OK).json({
             accessToken: newAccessToken,
             refreshToken: newRefreshToken
@@ -85,12 +91,21 @@ export const authController = {
     }),
 
     logout: asyncHandler(async (req: Request, res: Response) => {
-        const token = req.cookies?.refreshToken ?? req.body?.refreshToken;
-        if (token) {
-        await refreshTokenService.revokeByToken(token);
+        const {refreshToken} = req.body;
+        if(!refreshToken){
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("Please enter refreshToKen!!");
+        }
+        const result = await refreshTokenService.revokeByToken(refreshToken);
+        if(!result){
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("Revoke refreshToken failed!");
         }
         res.clearCookie('refreshToken', { path: '/' });
-        res.status(HttpStatus.OK).json({ message: 'Logged out successfully' })
+        res.status(HttpStatus.OK).json({ 
+            title: "Success",
+            message: 'Logged out successfully' 
+        })
     }),
 
     getRecordRefreshToken: asyncHandler(async (req: Request, res: Response) => {
@@ -107,4 +122,5 @@ export const authController = {
         const records = await refreshTokenService.getAll();
         res.status(HttpStatus.OK).json({recordRefreshToken: records})
     }),
+    
 }

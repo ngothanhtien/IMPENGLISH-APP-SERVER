@@ -92,4 +92,23 @@ export const verificationOTP = {
   getRecordOTP: async () => {
     return await verifyOTP.find();
   },
+
+  resenOTP: async (email: string) => {
+    try {
+      const record = await verifyOTP.findOne({ email });
+      if (!record) {
+        return { success: false,title:"Success", message: "No OTP record found to resend" };
+      }
+      const otpCode = generateOTP();
+      await verifyOTP.findOneAndUpdate(
+        { email },
+        { otp: otpCode, expiresAt: new Date(Date.now() + 60 * 1000) }, // reset TTL 1 phút
+        { upsert: true, new: true }
+      );
+      return { success: true,title:"Success", message: "Resend OTP Successfully" };
+    } catch (error) {
+      console.error("Error resending OTP:", error);
+      return { success: false,title:"Failed", message: "Failed to resend OTP" };
+    }
+  }
 };
