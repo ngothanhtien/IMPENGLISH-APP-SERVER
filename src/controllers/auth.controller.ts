@@ -36,18 +36,14 @@ export const authController = {
         const accessToken = authService.generateAccessToken(dataTokenUser);
         const refreshToken = await authService.generateRefreshToken(
             dataTokenUser
-        );
-        
-        // Set refresh token cookie
-        const maxAge = parseInt(process.env.EXPIRES_REFRESHTOKEN as string) * 1000;
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            maxAge,
-            path: '/',
-            sameSite: 'lax'
+        ).catch(err => {
+            console.error("[LOGIN] Error generating refresh token:", err);
+            throw err;
         });
-        
+        console.log("[LOGIN] Returning tokens:", { accessToken, refreshToken });
+    
         res.status(HttpStatus.OK).json({
+            title: "Success",
             message: "Login successful",
             accessToken,
             refreshToken,
@@ -88,8 +84,6 @@ export const authController = {
         };
 
         const newAccessToken = authService.generateAccessToken(payload);
-        const maxAge = parseInt(process.env.EXPIRES_REFRESHTOKEN as string) * 1000; // convert to ms
-        res.cookie('refreshToken', newRefreshToken, { httpOnly: true, maxAge, path: '/',sameSite: 'lax' });
         res.status(HttpStatus.OK).json({
             accessToken: newAccessToken,
             refreshToken: newRefreshToken
@@ -97,12 +91,21 @@ export const authController = {
     }),
 
     logout: asyncHandler(async (req: Request, res: Response) => {
-        const token = req.cookies?.refreshToken ?? req.body?.refreshToken;
-        if (token) {
-            await refreshTokenService.revokeByToken(token);
+        const {refreshToken} = req.body;
+        if(!refreshToken){
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("Please enter refreshToKen!!");
+        }
+        const result = await refreshTokenService.revokeByToken(refreshToken);
+        if(!result){
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("Revoke refreshToken failed!");
         }
         res.clearCookie('refreshToken', { path: '/' });
-        res.status(HttpStatus.OK).json({ message: 'Logged out successfully' })
+        res.status(HttpStatus.OK).json({ 
+            title: "Success",
+            message: 'Logged out successfully' 
+        })
     }),
 
     getRecordRefreshToken: asyncHandler(async (req: Request, res: Response) => {
