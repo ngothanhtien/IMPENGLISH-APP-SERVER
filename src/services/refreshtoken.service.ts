@@ -2,9 +2,9 @@ import { RefreshToken } from "../models/refreshtoken.model"
 import { hashToken } from "../untils/token"
 
 export const refreshTokenService = {
-  save: async (plainToken: string, userId: string, email: string, ip?: string, deviceInfo?: string, expiresInSeconds?: number) => {
+  save: async (plainToken: string, userId: string, email: string, ip?: string, deviceInfo?: string) => {
     const tokenHash = hashToken(plainToken);
-    const expiresAt = new Date(Date.now() + (expiresInSeconds || parseInt(process.env.EXPIRES_REFRESHTOKEN as string)) * 1000);
+    const expiresAt = new Date(Date.now() + (parseInt(process.env.EXPIRES_REFRESHTOKEN as string)) * 1000);
     return RefreshToken.create({ 
       tokenHash,
       userId,
@@ -27,7 +27,8 @@ export const refreshTokenService = {
   },
   revokeByToken: async (plainToken: string) => {
     const tokenHash = hashToken(plainToken);
-    return RefreshToken.updateOne({ tokenHash }, { revoked: true, revokedAt: new Date() });
+    const result = await RefreshToken.updateOne({ tokenHash,revoked: false }, { revoked: true, revokedAt: new Date() });
+    return result;
   },
 
   revokeAllForUser: (userId: string) => {

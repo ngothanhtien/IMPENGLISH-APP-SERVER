@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 
 const refreshTokenSchema = new mongoose.Schema(
   {
-    tokenHash: { type: String, required: true, unique: true },
+    tokenHash: { type: String, required: true},
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     email: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },

@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.post('/register',userController.register);
 router.post('/verify-otp',userController.verifyOTP);
+router.put('/resend-otp',userController.resendOTP);
 router.put('/:id',userController.updateUserById);
 router.delete('/:id',userController.deleteUserById);
 
