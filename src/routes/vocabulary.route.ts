@@ -4,6 +4,7 @@ import { vocabularyController } from "../controllers/vocabulary.controller";
 const router = express.Router();
 
 router.get("/topic/:topic",vocabularyController.findByTopic);
+router.get("/detail/:id",vocabularyController.getDetailsVocab);
 router.get("/vocab-all",vocabularyController.getAllVocabulary);
 router.get("/flashCard",vocabularyController.getFlashCards);
 router.get("/flashCard/:topic",vocabularyController.getFlashCardsByTopic);

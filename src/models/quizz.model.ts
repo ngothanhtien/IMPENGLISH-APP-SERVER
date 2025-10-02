@@ -3,7 +3,7 @@ import { Document,model,Schema } from "mongoose";
 const quizSchema = new Schema<IQuizz>({
     topic:{
         type: String,
-        required: [true,"Please enter your topic"]
+        required: [true,"Please enter your topic"],
     },
     question:[
         {
@@ -21,6 +21,7 @@ const quizSchema = new Schema<IQuizz>({
 },{
     timestamps: true
 })
+
 export const quizz = model<IQuizz>("Quizz",quizSchema);
 
 export interface IQuizz extends Document {
