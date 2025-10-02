@@ -174,6 +174,7 @@ export const vocabularyController = {
             pagination: flashcards.pagination
         });
     }),
+
     getFlashCardsByTopic: asynchandler(async(req: Request, res: Response) => {
         const topic = req.params.topic;
 
@@ -206,4 +207,23 @@ export const vocabularyController = {
             pagination: flashcards.pagination
         });
     }),
+
+    getDetailsVocab:  asynchandler(async(req: Request, res: Response) => {
+        const vocabId = req.params.id;
+        if(!vocabId){
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("Please fill vocabId!!");
+        }
+        const result = await vocabularyService.getDetailsVocab(vocabId);
+        if(!result){
+            res.status(HttpStatus.NOT_FOUND);
+            throw new Error(`Can't not find details of word`);
+        }
+
+        res.status(HttpStatus.OK).json({
+            title: "Success",
+            message: `Get details successfully`,
+            detail: result
+        })
+    })
 }

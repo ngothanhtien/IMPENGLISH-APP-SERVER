@@ -6,6 +6,7 @@ import {httpHandler} from "./src/middlewares/http.middleware"
 import {userRouter} from "./src/routes/user.route"
 import {vocabularyRouter} from "./src/routes/vocabulary.route"
 import {authRouter} from "./src/routes/auth.route"
+import morgan from 'morgan'
 dotenv.config();
 
 const app = express();
@@ -15,12 +16,10 @@ app.use(cors({
     credentials: true,
 }));
 app.use(express.json());
+app.use(morgan("dev"));
 
 connectDB();
 
-app.get("/",(req,res) => {
-    res.send("Hello my app")
-});
 app.use("/api/vocabulary",vocabularyRouter)
 app.use("/api/users",userRouter);
 app.use("/api/auth",authRouter);

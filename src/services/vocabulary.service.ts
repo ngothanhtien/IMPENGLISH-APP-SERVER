@@ -238,5 +238,22 @@ export const vocabularyService = {
             console.error('Error in getFlashcardsByTopic:', error);
             throw error;
         }
+    },
+
+    getDetailsVocab: async(vocabId: string) => {
+        const vocab =  await Vocabulary.findOne({_id: vocabId});
+        if(!vocab) return false;
+        const detailVocal: IVocabularyFlashCard = {
+             id: vocab?._id as string || '',
+            word: vocab?.word as string || '',
+            audio: vocab?.phonetics && vocab?.phonetics[0].audio || '',
+            definition: vocab?.meanings && vocab?.meanings[0].definitions[0].definition || '',
+            example: vocab?.meanings && vocab?.meanings[0].definitions[0].example || '',
+            level: vocab?.level || '',
+            partOfSpeech: vocab?.meanings && vocab?.meanings[0].partOfSpeech ||'',
+            pronunciation: vocab?.phonetics[0].text,
+            topic: vocab?.topic || 'General'
+        }
+        return detailVocal;
     }
 }

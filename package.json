@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --watch src --ext ts --exec tsx server.ts",
     "build": "tsc",
-    "start": "node server.ts",
+    "start": "node ts server.ts",
     "import:vocab": "tsx src/scripts/importVocabularyFromExcel.ts"
   },
   "keywords": [],
@@ -22,6 +22,7 @@
     "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.0",
+    "morgan": "^1.10.1",
     "nodemailer": "^7.0.5",
     "xlsx": "^0.18.5"
   },
@@ -31,6 +32,7 @@
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongoose": "^5.11.96",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^24.3.0",
     "@types/nodemailer": "^7.0.1",
     "nodemon": "^3.1.10",
