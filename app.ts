@@ -7,6 +7,7 @@ import {userRouter} from "./src/routes/user.route"
 import {vocabularyRouter} from "./src/routes/vocabulary.route"
 import {authRouter} from "./src/routes/auth.route"
 import {quizRouter} from './src/routes/quiz.route'
+import {postRouter} from './src/routes/post.route'
 import morgan from 'morgan'
 dotenv.config();
 
@@ -25,5 +26,6 @@ app.use("/api/vocabulary",vocabularyRouter)
 app.use("/api/users",userRouter);
 app.use("/api/auth",authRouter);
 app.use("/api/quiz",quizRouter)
+app.use("/api/posts",postRouter);
 app.use(httpHandler);
 export default app;
