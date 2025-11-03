@@ -4,6 +4,7 @@ import { IPost } from '../models/post.model';
 import { User } from '../models/user.model';
 import { IPostConstants } from '../constants/post.constant';
 import { get } from 'mongoose';
+import { commentService } from '../services/comment.service';
 
 export const postController = {
     createPost: asynchandler(async (req, res) => {
@@ -54,14 +55,22 @@ export const postController = {
 
     getPostById: asynchandler(async (req, res) => {
         const postId = req.params.postId;
+        if(!postId){
+            res.status(400);
+            throw new Error("Post ID is required");
+        }
         const post = await postService.getPostById(postId);
         if (!post) {
             res.status(404);
             throw new Error("Post not found");
         }
+        const comments = await commentService.getCommentsByPostId(postId);
         res.status(200).json({
-            status: "Success",
-            data: post,
+            status: "Get Detail Post Successfully",
+            data: {
+                post,
+                comments: comments || [],
+            },
         });
     }),
 
