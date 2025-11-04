@@ -79,4 +79,18 @@ export const postService = {
             return null;
         }
     },
+
+    likePost: async (postId: string): Promise<IPost | null> => {
+        try {
+            const updatedPost = await Post.findByIdAndUpdate(
+                postId,
+                { $inc: { likes: 1 } },
+                { new: true }
+            );
+            return updatedPost;
+        } catch (error) {
+            console.error("Error liking post:", error);
+            return null;
+        }
+    },
 };

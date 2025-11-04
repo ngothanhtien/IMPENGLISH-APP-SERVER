@@ -6,6 +6,7 @@ export interface IPost extends Document {
   category?: string;
   content?: string;
   tags?: string[];
+  countLike?: number;
 }
 
 const PostSchema = new Schema<IPost> ({
@@ -29,6 +30,10 @@ const PostSchema = new Schema<IPost> ({
     tags:{
         type: [String],
         default: []
+    },
+    countLike:{
+        type: Number,
+        default: 0
     }
 },{
     timestamps: true
