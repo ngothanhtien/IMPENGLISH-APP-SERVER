@@ -67,7 +67,8 @@ export const postController = {
         }
         const comments = await commentService.getCommentsByPostId(postId);
         res.status(HttpStatus.OK).json({
-            status: "Get Detail Post Successfully",
+            status: "Success",
+            message: "Post details retrieved successfully",
             data: {
                 post,
                 comments: comments || [],
