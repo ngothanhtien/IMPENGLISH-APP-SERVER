@@ -3,6 +3,7 @@ export interface IVocabularyFlashCard {
     id: string,
     word: string,
     pronunciation?: string,
+    meaningVN?: string,
     audio?: string,
     definition?: string,
     example?: string,
@@ -10,3 +11,4 @@ export interface IVocabularyFlashCard {
     topic?: string,
     partOfSpeech?: string
 }
+

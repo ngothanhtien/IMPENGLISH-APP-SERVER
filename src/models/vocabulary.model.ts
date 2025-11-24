@@ -43,10 +43,12 @@ const definitionSchema = new Schema<IDefinition>({
         type: String
     },
     synonyms: [{
-        type: String
+        type: String,
+        select: false
     }],
     antonyms: [{
-        type: String
+        type: String,
+        select: false
     }]
 }, { _id: false });
 

@@ -143,7 +143,7 @@ export const vocabularyController = {
     }),
     
     getFlashCards: asynchandler(async(req: Request, res: Response) => {
-        const topic = req.params.topic;
+        const topic = req.query.topic as string || '';
 
         const options = {
             level: req.query.level as string,
@@ -158,40 +158,7 @@ export const vocabularyController = {
             res.status(validationError.status);
             throw new Error(validationError.message);
         }
-        const flashcards = await vocabularyService.getFlashcards(options);
-        if(!flashcards || flashcards.data.length === 0){
-            res.status(HttpStatus.NOT_FOUND);
-            throw new Error(`No flashcards found for topic: ${topic}`);
-        }
-        if(options.page > flashcards.pagination.pages){
-            res.status(HttpStatus.BAD_REQUEST);
-            throw new Error(`Max current page is: ${flashcards.pagination.pages}`);
-        }
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: `Found ${flashcards.data.length} flashcards for topic: ${topic}`,
-            data: flashcards.data,
-            pagination: flashcards.pagination
-        });
-    }),
-
-    getFlashCardsByTopic: asynchandler(async(req: Request, res: Response) => {
-        const topic = req.params.topic;
-
-        const options = {
-            level: req.query.level as string,
-            page: parseInt(req.query.page as string) || 1,
-            limit: parseInt(req.query.limit as string) || 10,
-            sortBy: req.query.sortBy as string || 'word',
-            sortOrder: (req.query.sortOrder as 'asc' | 'desc') || 'asc'
-        };
-        const validationError = validationFilterOptions.filterOptions(options);
-
-        if (validationError) {
-            res.status(validationError.status);
-            throw new Error(validationError.message);
-        }
-        const flashcards = await vocabularyService.getFlashcardsByTopic(topic,options);
+        const flashcards = await vocabularyService.getFlashcards(topic,options);
         if(!flashcards || flashcards.data.length === 0){
             res.status(HttpStatus.NOT_FOUND);
             throw new Error(`No flashcards found for topic: ${topic}`);
@@ -225,5 +192,43 @@ export const vocabularyController = {
             message: `Get details successfully`,
             detail: result
         })
-    })
+    }),
+
+    searchVocabulary: asynchandler(async(req: Request, res: Response) => {
+        const keyword = req.query.keyword as string;
+        const topic = req.query.topic as string || '';
+
+        if(!keyword || keyword.trim() === ''){
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("Keyword is required!");
+        }
+        const options = {
+            level: req.query.level as string,
+            page: parseInt(req.query.page as string) || 1,
+            limit: parseInt(req.query.limit as string) || 10,
+            sortBy: req.query.sortBy as string || 'word',
+            sortOrder: (req.query.sortOrder as 'asc' | 'desc') || 'asc'
+        };
+        const validationError = validationFilterOptions.filterOptions(options);
+
+        if (validationError) {
+            res.status(validationError.status);
+            throw new Error(validationError.message);
+        }
+        const searchResults = await vocabularyService.searchVocabulary(keyword,topic, options);
+        if(!searchResults || searchResults.data.length === 0){
+            res.status(HttpStatus.NOT_FOUND);
+            throw new Error(`No vocabulary found for keyword: ${keyword}`);
+        }
+        if(options.page > searchResults.pagination.pages){
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error(`Max current page is: ${searchResults.pagination.pages}`);
+        }
+        res.status(HttpStatus.OK).json({
+            success: true,
+            message: `Found ${searchResults.data.length} words for keyword: ${keyword}`,
+            data: searchResults.data,
+            pagination: searchResults.pagination
+        });
+    }),
 }
