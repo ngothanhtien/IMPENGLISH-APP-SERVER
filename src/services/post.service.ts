@@ -27,7 +27,7 @@ export const postService = {
 
     getPostById: async (postId: string): Promise<IPost | null> => {
         try {
-            const post = await Post.findById(postId);
+            const post = await Post.findById(postId).populate("userId", "fullName streakDay level");
             return post;
         }
         catch (error) {
@@ -62,7 +62,7 @@ export const postService = {
 
     getAllPosts: async (): Promise<IPost[] | null> => {
         try {
-            const posts = await Post.find();
+            const posts = await Post.find().populate("userId", "fullName streakDay level");
             return posts;
         } catch (error) {
             console.error("Error fetching all posts:", error);
