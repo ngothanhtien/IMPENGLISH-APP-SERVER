@@ -27,7 +27,7 @@ export const postService = {
 
     getPostById: async (postId: string): Promise<IPost | null> => {
         try {
-            const post = await Post.findById(postId).populate("userId", "fullName streakDay level");
+            const post = await Post.findById(postId).populate("userId", "fullName streakDay level avatar");
             return post;
         }
         catch (error) {
