@@ -52,20 +52,22 @@ export const vocabularyController = {
 
     getRandomWords: asynchandler( async(req: Request, res: Response) => {
         const options = {
+            limit: parseInt(req.query.limit as string) || 1,
+            word: req.query.word as string,
             topic: req.query.topic as string,
             level: req.query.level as string,
             sortBy: req.query.sortBy as string || 'word',
             sortOrder: (req.query.sortOrder as 'asc' | 'desc') || 'asc'
         };
-        const randomwords = await vocabularyService.getRandomWords(10,options);
+        const randomwords = await vocabularyService.getRandomWords(options,options.word,options.limit);
         if(!randomwords){
             res.status(HttpStatus.BAD_REQUEST);
             throw new Error("Not get Random Word with the topic!");
         }
         res.status(HttpStatus.OK).json({
-            success: true,
+            title: "Success",
             message: `Generate Random word with topic`,
-            data: randomwords,
+            detail: randomwords,
         })
     }),
 
