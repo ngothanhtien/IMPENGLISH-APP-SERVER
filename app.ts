@@ -10,7 +10,9 @@ import {quizRouter} from './src/routes/quiz.route'
 import {postRouter} from './src/routes/post.route'
 import {commentRouter} from './src/routes/comment.route'
 import {likePostRouter} from './src/routes/like-post.route'
+import {quizResultRouter} from './src/routes/quiz-result.route'
 import morgan from 'morgan'
+
 dotenv.config();
 
 const app = express();
@@ -19,17 +21,24 @@ app.use(cors({
     origin: true,
     credentials: true,
 }));
+
+// tăng limit để nhận base64 lớn
 app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
 app.use(morgan("dev"));
 
 connectDB();
 
-app.use("/api/vocabulary",vocabularyRouter)
-app.use("/api/users",userRouter);
-app.use("/api/auth",authRouter);
-app.use("/api/quiz",quizRouter)
-app.use("/api/posts",postRouter);
-app.use("/api/comments",commentRouter);
-app.use("/api/likes",likePostRouter);
+app.use("/api/vocabulary", vocabularyRouter);
+app.use("/api/users", userRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/quiz", quizRouter);
+app.use("/api/quiz-results", quizResultRouter);
+app.use("/api/posts", postRouter);
+app.use("/api/comments", commentRouter);
+app.use("/api/likes", likePostRouter);
+
 app.use(httpHandler);
+
 export default app;

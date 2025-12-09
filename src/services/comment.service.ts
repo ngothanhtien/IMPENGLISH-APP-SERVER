@@ -6,7 +6,7 @@ export const commentService = {
         try {
             const newComment = new Comment(commentData);
             newComment.userId = userId;
-            const savedComment = await newComment.save();
+            const savedComment = (await newComment.save()).populate('userId', 'fullName streakDay level avatar');
             return savedComment;
         } catch (error) {
             console.error("Error adding comment:", error);
@@ -16,7 +16,7 @@ export const commentService = {
 
     getCommentsByPostId: async(postId: string) => {
         try {
-            const comments = await Comment.find({ postId });
+            const comments = await Comment.find({ postId }).populate('userId', 'fullName streakDay level avatar');
             return comments;
         } catch (error) {
             console.error("Error fetching comments by postId:", error);

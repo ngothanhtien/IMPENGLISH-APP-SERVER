@@ -90,21 +90,63 @@ export const vocabularyService = {
     },
 
     getRandomWords: async (
-        count: number = 10,
-        options: FilterOptions  = {}
-    ): Promise<IVocabulary[]> => {
+    options: FilterOptions = {},
+    word?: string,
+    limit?: number 
+    ) => {
         try {
-            const {level,topic} = options;
-            const query: any ={};
+            const {level, topic} = options; // ✅ Default limit = 1
+            const query: any = {};
             if(level) query.level = level;
             if(topic) query.topic = topic.toLowerCase();
+            if(word) query.word = { $ne: word };
+            if(!limit || limit < 1){
+                limit = 1;
+            }
+        
             const data = await Vocabulary.aggregate([
-                {$match: query},
-                {$sample: {size: count}}
+                { $match: query },
+                { $sample: { size: limit } }, // ✅ Sử dụng limit
+                { 
+                    $project: { 
+                        _id: 1,
+                    word: 1,
+                    level: 1,
+                    meaningVN: 1,
+                    phonetics: 1,
+                    topic: 1,
+                    meanings: {
+                        $map: {
+                            input: "$meanings",
+                            as: "meaning",
+                            in: {
+                                partOfSpeech: "$$meaning.partOfSpeech",
+                                definitions: {
+                                    $map: {
+                                        input: "$$meaning.definitions",
+                                        as: "def",
+                                        in: {
+                                            definition: "$$def.definition",
+                                            example: "$$def.example"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    } 
+                }
             ]);
-            return data;
+            
+            if(!data || data.length === 0){
+                throw new Error("No vocabulary found with the given criteria.");
+            }
+            
+            // ✅ Nếu limit = 1 → trả về object, ngược lại → trả về array
+            return limit === 1 ? data[0] : data;
+            
         } catch (error) {
-            console.error('Error in findWordsWithMultipleMeanings:', error);
+            console.error('Error in getRandomWords:', error);
             throw error;
         }
     },

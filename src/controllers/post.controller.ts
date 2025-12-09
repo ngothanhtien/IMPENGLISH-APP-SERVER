@@ -3,7 +3,6 @@ import { postService } from '../services/post.service'
 import { IPost } from '../models/post.model';
 import { User } from '../models/user.model';
 import { IPostConstants } from '../constants/post.constant';
-import { get } from 'mongoose';
 import { commentService } from '../services/comment.service';
 import { HttpStatus } from '../constants/http.constant';
 
