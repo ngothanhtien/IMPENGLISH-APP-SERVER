@@ -8,6 +8,8 @@ import { refreshTokenService } from "../services/refreshtoken.service";
 import { hashToken } from "../untils/token";
 import crypto from "crypto";
 import { RefreshToken } from "../models/refreshtoken.model";
+import { User } from "../models/user.model";
+import { create } from "domain";
 export const authController = {
     login: asyncHandler(async (req: Request, res: Response)=>{
         const { email, password } = req.body;
@@ -19,6 +21,18 @@ export const authController = {
             throw new Error(validation.message);
         }
         
+        // Check if user exists and is verified
+        const existingUser = await User.findOne({email: email});
+        if(!existingUser){
+            res.status(HttpStatus.NOT_FOUND);
+            throw new Error("Account with this email is not found");
+        }
+
+        if(existingUser.verify === false){
+            res.status(HttpStatus.FORBIDDEN);
+            throw new Error("Account with this email is not verified");
+        }
+
         // Authenticate user
         const user = await authService.login(email, password);
         if (!user) {
@@ -52,6 +66,9 @@ export const authController = {
                 email: user.email,
                 fullName: user.fullName,
                 type: user.type,
+                status: user.status,
+                level: user.level,
+                streakDay: user.streakDay,
             }
         });
     }),
@@ -116,11 +133,6 @@ export const authController = {
     deleteAllRefreshToken: asyncHandler(async (req: Request, res: Response) => {
         await refreshTokenService.deleteAll();
         res.status(HttpStatus.OK).json({message: "All refresh tokens have been deleted"})
-    }),
-
-    getAllRefreshToken: asyncHandler(async (req: Request, res: Response) => {
-        const records = await refreshTokenService.getAll();
-        res.status(HttpStatus.OK).json({recordRefreshToken: records})
     }),
     
 }

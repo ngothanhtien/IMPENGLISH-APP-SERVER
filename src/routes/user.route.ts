@@ -7,7 +7,8 @@ const router = express.Router();
 router.post('/register',userController.register);
 router.post('/verify-otp',userController.verifyOTP);
 router.put('/resend-otp',userController.resendOTP);
-router.put('/:id',userController.updateUserById);
+router.put('/profile',requireAuth,userController.updateProfile);
+router.put('/change-password',requireAuth,userController.changePassword);
 router.delete('/:id',userController.deleteUserById);
 
 router.get('/profile',requireAuth,userController.getProfile);

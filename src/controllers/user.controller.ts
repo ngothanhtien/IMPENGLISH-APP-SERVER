@@ -7,11 +7,10 @@ import { HttpStatus } from "../constants/http.constant";
 import { userService } from "../services/user.service";
 import bcrypt from 'bcrypt'
 import { validationUser } from "../validations/user.validation";
-import mongoose, { get } from "mongoose";
-import { IUserConstants } from "../constants/user.constant";
+import mongoose from "mongoose";
 import { verificationOTP } from "../services/verifyotp.service";
 
-interface RequestWithUser extends Request {
+export interface RequestWithUser extends Request {
     user?: { _id?: string; id?: string; [key: string]: any }
 }
 export const userController = {
@@ -119,17 +118,49 @@ export const userController = {
         res.status(HttpStatus.OK).json(userInfor);
     }),
 
-    updateUserById: asyncHandler(async(req: Request, res: Response) => {
-        const userid = req.params.id;
-        const data:IUserConstants = req.body;
-        
-        const userUpdate = await userService.updateUserById(userid,data);
-        
-        if(!userUpdate){
-            res.status(HttpStatus.NOT_FOUND);
-            throw new Error("Update is not successfully ");
+    updateProfile: asyncHandler(async (req: RequestWithUser, res: Response) => {
+        const userId = req.user?._id || req.user?.id;
+
+        if (!userId) {
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("User ID missing");
         }
-        res.status(HttpStatus.OK).json({message: "Update successfully",infor: userUpdate})
+
+        const data:any = {
+            fullName: req.body.fullName,
+            phone: req.body.phone,
+            avatar: req.body.avatar
+        };
+        if(!data.fullName && !data.phone && !data.avatar){
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("No data provided for update");
+        }
+
+        if(data.fullName && !validationError.onlyRegularChar(data.fullName)){
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("Full name contains invalid characters");
+        }
+
+        if(data.phone && !validationError.isPhoneNumber(data.phone)){
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("Invalid phone number format");
+        }
+    
+        // Xóa các field undefined
+        Object.keys(data).forEach(key => data[key] === undefined && delete data[key]);
+
+        const updated = await userService.updateProfile(userId, data);
+
+        if (!updated) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new Error("Update failed");
+        }
+
+        res.status(HttpStatus.OK).json({
+            status: "Success",
+            message: "Profile updated",
+            user: updated
+        });
     }),
     
     deleteUserById: asyncHandler(async(req: Request, res: Response)=>{
@@ -165,5 +196,47 @@ export const userController = {
         }
 
         res.status(HttpStatus.OK).json({title: result.title, message: result.message});
+    }),
+
+    changePassword: asyncHandler(async (req: RequestWithUser, res: Response) => {
+        const userId = req.user?._id || req.user?.id;
+        const { oldPassword, newPassword } = req.body;
+
+        if (!oldPassword || !newPassword) {
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("Both old and new password are required");
+        }
+
+        const user = await User.findById(userId);
+        if(!user){
+            res.status(HttpStatus.NOT_FOUND);
+            throw new Error("User not found");
+        }
+
+        const isMatch = await bcrypt.compare(oldPassword, user.password as string);
+        if (!isMatch) {
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("Old password is incorrect");
+        }
+
+        if(!validationError.isValidPassword(newPassword)){
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("New password does not meet security requirements");
+        }
+
+        if (await bcrypt.compare(newPassword, user.password as string)) {
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error("New password must be different from old password");
+        }
+
+        const hashed = await bcrypt.hash(newPassword, 10);
+
+        const updated = await userService.updatePassword(userId as string, hashed);
+
+        res.status(HttpStatus.OK).json({
+            status: "Success",
+            message: "Password changed successfully",
+            user: updated
+        });
     }),
 }

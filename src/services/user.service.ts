@@ -14,7 +14,7 @@ export const userService = {
 
         if (existingUser && existingUser.verify === false) {
             const userid = String(existingUser._id);
-            const userupdate = await userService.updateUserById(
+            const userupdate = await userService.updateProfile(
                 userid,
                 {
                     fullName: userData.fullName,
@@ -40,24 +40,14 @@ export const userService = {
         return user;
     },
 
-    updateUserById: async(userId: string, userData: IUserConstants) => {
+    updateProfile: async (userId: string, data: any) => {
         try {
-            if(userData.password){
-                userData.password = await bcrypt.hash(userData.password, 10);
-            }
-            const updatedUser = await User.findByIdAndUpdate(
+            return await User.findByIdAndUpdate(
                 userId,
-                {
-                    $set: userData
-                },
-                {
-                    new: true
-                }
+                { $set: data },
+                { new: true }
             ).select("-password");
-            if(!updatedUser) return false;
-            return updatedUser;
-        } catch (error) {
-            console.error("Error updating user:", error);
+        } catch {
             return false;
         }
     },
@@ -71,5 +61,13 @@ export const userService = {
         if(!userDelete) return false;
 
         return userDelete;
+    },
+
+    updatePassword: async (userId: string, hashedPassword: string) => {
+        return await User.findByIdAndUpdate(
+            userId,
+            { $set: { password: hashedPassword } },
+            { new: true }
+        );
     }
 }
